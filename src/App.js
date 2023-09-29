@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 import "./card.css";
 import { cardsArray } from "./cards";
@@ -10,16 +10,35 @@ function App() {
   const [openCards, setOpenCards] = useState([]);
   const [moves, setMoves] = useState(0);
   const [clearedCards, setClearedCards] = useState(0);
-  const [win, setWin] = useState(0);
-  const [bestScore, setBestScore] = useState(Infinity);
+  const [win, setWin] = useState(() => {
+    const savedItem = localStorage.getItem("win");
+    const parsedItem = JSON.parse(savedItem);
+    return parsedItem;
+  });
+  const [bestScore, setBestScore] = useState(() => {
+    const savedItem = localStorage.getItem("bestScore");
+    const parsedItem = JSON.parse(savedItem);
+    return parsedItem;
+  });
+
+  useEffect(() => {
+    if (!localStorage.getItem("bestScore")) {
+      localStorage.setItem("bestScore", Infinity);
+      setBestScore(Infinity);
+    }
+  }, [bestScore]);
+
+  useEffect(() => {
+    localStorage.setItem("win", win);
+  }, [win]);
 
   const checkWin = () => {
-    console.log(clearedCards);
     if (clearedCards === 14) {
       setWin(win + 1);
       reshuffle();
       if (bestScore > moves) {
         setBestScore(moves);
+        localStorage.setItem("bestScore", moves);
       }
     }
   };
@@ -43,7 +62,7 @@ function App() {
     setCards(shuffleCards(cardShuffle));
     setClearedCards(0);
     setMoves(0);
-    setOpenCards([])
+    setOpenCards([]);
   };
 
   const handleClick = (index) => {
@@ -57,7 +76,6 @@ function App() {
       setOpenCards(openCopy);
     } else {
       if (cardCopy[openCopy[0]].type === cardCopy[openCopy[1]].type) {
-        console.log("match");
         setMoves(moves + 1);
         setClearedCards(clearedCards + 2);
         openCopy = [];
@@ -76,8 +94,8 @@ function App() {
   return (
     <div className="App">
       <div className="instructions">
-      <h1>Bluey Card Matching Game</h1>
-      <h2>Match the pairs to win!</h2>
+        <h1>Bluey Card Matching Game</h1>
+        <h2>Match the pairs to win!</h2>
       </div>
       <div className="scoreWindow">
         <h2>Moves : {moves}</h2>
